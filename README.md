@@ -1,5 +1,5 @@
 # SWR-lab2-VLAN
-## Introduction
+## 2 - Introduction aux VLANs
 
 > 1. Donnez deux avantages concrets de l’utilisation des VLANs.
 
@@ -86,12 +86,79 @@ a) Indiquez l'emplacement et le format du 'VLAN tag' 802.1Q dans une trame Ether
 b) Quel champ identifie le VLAN d'une trame ? \
 c) Comparez deux trames de deux VLAN différentes pour vérifier vos propos. Attention : souvenez-vous que l'encapsulation 802.1Q n'a pas lieu sur tout le réseau.
 
-![alt text](./screenshots/image.png)
+a) Emplacement entouré en rouge dans l'image ci-dessous : ![alt text](./screenshots/image.png) \
+b) Le champ ID identifie le VLAN \
+c) Trame du VLAN 2 : ![alt text](./screenshots/image-3.png) \
+Trame du VLAN 3 : ![alt text](./screenshots/image-1.png)
 
-> 13. Combien de VLANs di érents peuvent être gérés avec l’encapsulation 802.1Q ? 
+> 13. Combien de VLANs différents peuvent être gérés avec l’encapsulation 802.1Q ?
+
+4095 VLANs différents peuvent être gérés par 802.1Q
 
 > 14. L’encapsulation 802.1Q est-elle également utilisée sur les ports access ? 
 
+Non elle n'est pas utilisée sur les ports access. Elle est principalement utilisée sur les ports trunk.
+
 > 15. Quelle est la longueur maximum d'une trame avec 802.1Q ? \
- a) Justifiez avec une capture Wireshark et comparez le résultat avec les trames sans 802.1Q. Grâce à l'option -s du ping, envoyez une trame d'une taille supérieure à 2000 bytes. La longueur de la trame a ichée sur Wireshark (on wire) ne prend pas compte du CRC (+ 4bytes). \
+ a) Justifiez avec une capture Wireshark et comparez le résultat avec les trames sans 802.1Q. Grâce à l'option -s du ping, envoyez une trame d'une taille supérieure à 2000 bytes. La longueur de la trame affichée sur Wireshark (on wire) ne prend pas compte du CRC (+ 4bytes). \
  b) Expliquez comment un ping avec une payload plus grande que le maximum peut nous permettre de déterminer de manière rigoureuse la taille maximum d'une trame. (question bonus)
+
+ a) La taille maximale d'une trame ARP est de 46 Bytes. Si nous la comparons à une trame CDP par exemple, cette dernière est d'une longueur de 351 Bytes.
+ ![alt text](./screenshots/image-2.png) 
+
+b) Car les trames seront fractionnées en des fragments d'une longueur identique pour transmettre les données. De ce fait il est possible de déduire rigoureusement la MTU.
+
+## 3 - Sécurité des VLANs
+### ARP Spoofing
+
+> 16. Depuis PC4, manipulez les caches ARP de PC1 et PC2 avec la commande suivante (en une seule ligne) :  
+_sudo ifconfig eth0 172.16.1.12; (ping -c 1 172.16.1.11);  
+sudo ifconfig eth0 172.16.1.11; (ping -c 1 172.16.1.12);  
+sudo ifconfig eth0 172.16.1.13;_ 
+
+> 17. Consultez la table ARP de PC1 et de PC2 pour en vérifier le contenu, à l’aide de la commande arp -a. Il se peut que le contenu s'e ace rapidement. Refaites la manipulation jusqu'à obtenir la MAC de PC4 dans la table de PC1 et PC2. Joignez des captures d'écran.
+
+Nous constatons que l'adresse MAC ci-dessous correspond à celle de PC4.
+
+Capture PC1
+![alt text](./screenshots/image-6.png)
+
+Capture PC2
+![alt text](./screenshots/image-5.png)
+
+### Attaque Man-In-The-Middle
+
+> 18. Est-ce qu'un attaquant est capable d'effectuer une attaque man-in-the-middle avec la segmentation en VLANs s’il veut s’attaquer à un VLAN différent du sien ? 
+
+Non ce n'est pas possible car il s'agit de réseaux différents.
+
+### Attaque VLAN hopping 
+
+> 19.  Renseignez-vous et décrivez en quoi consiste le VLAN hopping. 
+
+Le VLAN hopping est une méthode d'attaque des VLAN consistant à envoyer des paquets à un port déconnecté. Le but étant d'accéder à d'autres VLANs du réseau.
+
+> 20. Quelles attaques (écoute clandestine, déni de service) peuvent être menées avec cette méthode ? 
+
+Nous pouvons faire de l'écoute clandestine avec cette méthode.
+
+> 21. Proposez une approche pour empêcher cette attaque. 
+
+Une solution pour éviter ce genre d'attaque est de désactiver le protocole STP sur tous les ports n'étant pas connectés à d'autres switchs.
+
+## 4 - Recherche d'information et compréhension détaillée
+
+> 22. Faites maintenant un ping depuis PC4 vers PC1 et capturez simultanément avec Wireshark à l’interface e0/0 de PC1 et e0/0 de PC4.  
+Utilisez le filtre de capture ARP dans les deux captures. Dans une des deux interfaces, vous devriez voir seulement les requêtes ARP tandis que dans l’autre, vous devriez voir les requêtes et aussi les réponses ARP. Expliquez la raison. Pour ce faire, vous pouvez par exemple observer avec Wireshark le trajet parcouru par les requêtes ARP ainsi que celui des réponses ARP pour comprendre les différences entre les deux interfaces. 
+
+Capture PC1
+![alt text](./screenshots/image-7.png)
+
+Capture PC4
+![alt text](./screenshots/image-8.png)
+
+Malgré plusieurs tests, nous obeservons les requêtes et les réponses des 2 côtés. Probablement car les swicths connaîssent déjà les emplacements des PC1 et PC4 en raison des pings effectués pour tester les mode trunk.
+
+> 23. Faites un ping de PC1 vers PC6. Est-ce que le ping passe ? Si oui, pourquoi ? 
+
+Non, car nous ne pouvons pas communiquer entre les VLANs sauf à l'aide d'un routeur.
